@@ -32,9 +32,10 @@ GEN1_MAX_TRANSITION = 5.0
 # Gen2+ dimmers fade natively for much longer; ramps use segments of this length.
 RPC_SEGMENT = 15.0
 RPC_MAX_TRANSITION = 60.0
-# Storing a brightness on Gen2+ without turning on is not verified yet; until it is,
-# nothing is sent (a device that turns on would light up a room at night).
-RPC_STORE_VERIFIED = False
+# Storing a brightness on Gen2+ without turning on: verified 2026-11-17 on a Dimmer Gen3
+# (S3DM-0A101WWL, fw 2.2.0): Light.Set with only `brightness` keeps output false and the
+# device reports the new brightness (response body: null).
+RPC_STORE_VERIFIED = True
 
 _CHANNEL_RE = re.compile(r"light[_:-](\d+)$")
 

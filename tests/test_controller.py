@@ -301,14 +301,14 @@ async def test_gen3_uses_rpc_and_segments(hass, clock, aioclient_mock):
     )
     hass.states.async_set("light.bad", "off", {"brightness": None})
     light = FakeLight(hass)
-    aioclient_mock.get("http://10.0.0.6:80/rpc/Light.Set", json={"was_on": False})
+    aioclient_mock.get("http://10.0.0.6:80/rpc/Light.Set", text="null")
 
     clock(at(6, 10))
     entry = await setup_profile(
         hass, [slot("Morning", "06:00:00", 100, "ramp", dict(FAST_RAMP, duration_min=0.01))]
     )
-    # storing on Gen2+ is disabled until verified on a real device
-    assert aioclient_mock.mock_calls == []
+    query = aioclient_mock.mock_calls[0][1].query
+    assert (query["id"], query["brightness"]) == ("0", "1")
 
     light.by_hand("on", 1)
     await hass.async_block_till_done()
@@ -328,7 +328,7 @@ async def test_gen3_store_when_verified(hass, clock, aioclient_mock):
         "light", "shelly", "DCB4D9C26168-light:0", config_entry=shelly, suggested_object_id="bad"
     )
     hass.states.async_set("light.bad", "off", {"brightness": None})
-    aioclient_mock.get("http://10.0.0.6:80/rpc/Light.Set", json={"was_on": False})
+    aioclient_mock.get("http://10.0.0.6:80/rpc/Light.Set", text="null")
     clock(at(12))
     with patch("custom_components.shelly_dimmer_profiles.shelly_api.RPC_STORE_VERIFIED", True):
         await setup_profile(hass, profile())

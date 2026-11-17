@@ -1,0 +1,135 @@
+"""Direct access to Shelly dimmers: store a brightness without turning on.
+
+Home Assistant's light.turn_on always switches the light on, so the brightness
+the wall switch will use next is written to the device directly:
+
+* Gen1 (e.g. Dimmer 2):  GET /light/<ch>?brightness=X        (no "turn")
+* Gen2+ (e.g. Dimmer Gen3): GET /rpc/Light.Set?id=<ch>&brightness=X  (no "on")
+
+Host, port and credentials come from the existing Shelly config entry.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import logging
+import re
+from dataclasses import dataclass
+
+import aiohttp
+from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
+_LOGGER = logging.getLogger(__name__)
+
+SHELLY_DOMAIN = "shelly"
+REQUEST_TIMEOUT = 5
+
+# Longest transition Home Assistant passes to a Gen1 light (device limit).
+GEN1_MAX_TRANSITION = 5.0
+# Gen2+ dimmers fade natively for much longer; ramps use segments of this length.
+RPC_SEGMENT = 15.0
+RPC_MAX_TRANSITION = 60.0
+# Storing a brightness on Gen2+ without turning on is not verified yet; until it is,
+# nothing is sent (a device that turns on would light up a room at night).
+RPC_STORE_VERIFIED = False
+
+_CHANNEL_RE = re.compile(r"light[_:-](\d+)$")
+
+
+@dataclass(frozen=True)
+class ShellyTarget:
+    """Where and how to reach the dimmer behind a light entity."""
+
+    host: str
+    port: int
+    gen: int
+    channel: int
+    username: str | None = None
+    password: str | None = None
+
+    @property
+    def is_gen1(self) -> bool:
+        """Gen1 (block/CoIoT) device."""
+        return self.gen < 2
+
+    @property
+    def integer_steps(self) -> bool:
+        """Ramp in whole-percent steps (short native transitions only)."""
+        return self.is_gen1
+
+    @property
+    def max_transition(self) -> float:
+        """Longest transition to request per step."""
+        return GEN1_MAX_TRANSITION if self.is_gen1 else RPC_MAX_TRANSITION
+
+    @property
+    def can_store(self) -> bool:
+        """Whether a brightness can be stored without turning the light on."""
+        return self.is_gen1 or RPC_STORE_VERIFIED
+
+    @property
+    def segment(self) -> float:
+        """Segment length for natively faded ramps."""
+        return RPC_SEGMENT
+
+
+@callback
+def resolve_target(hass: HomeAssistant, entity_id: str) -> ShellyTarget | None:
+    """Find the Shelly device of a light entity, or None if it is not a Shelly."""
+    entity = er.async_get(hass).async_get(entity_id)
+    if entity is None or entity.platform != SHELLY_DOMAIN or not entity.config_entry_id:
+        return None
+    entry = hass.config_entries.async_get_entry(entity.config_entry_id)
+    if entry is None or entry.domain != SHELLY_DOMAIN:
+        return None
+    host = entry.data.get(CONF_HOST)
+    if not host:
+        return None
+    match = _CHANNEL_RE.search(entity.unique_id or "")
+    return ShellyTarget(
+        host=host,
+        port=int(entry.data.get(CONF_PORT) or 80),
+        gen=int(entry.data.get("gen") or 1),
+        channel=int(match.group(1)) if match else 0,
+        username=entry.data.get(CONF_USERNAME),
+        password=entry.data.get(CONF_PASSWORD),
+    )
+
+
+async def async_store_brightness(hass: HomeAssistant, target: ShellyTarget, pct: int) -> bool:
+    """Store `pct` as the brightness the light turns on with, keeping it off."""
+    pct = max(1, min(100, int(pct)))
+    base = f"http://{target.host}:{target.port}"
+    kwargs: dict = {}
+    if target.is_gen1:
+        url = f"{base}/light/{target.channel}"
+        params = {"brightness": pct}
+        if target.username and target.password:
+            kwargs["auth"] = aiohttp.BasicAuth(target.username, target.password)
+    else:
+        url = f"{base}/rpc/Light.Set"
+        params = {"id": target.channel, "brightness": pct}
+        if target.password:
+            middleware = getattr(aiohttp, "DigestAuthMiddleware", None)
+            if middleware is None:
+                _LOGGER.error("Digest auth needs aiohttp >= 3.12 for %s", target.host)
+                return False
+            kwargs["middlewares"] = (middleware("admin", target.password),)
+
+    session = async_get_clientsession(hass)
+    try:
+        async with asyncio.timeout(REQUEST_TIMEOUT):
+            async with session.get(url, params=params, **kwargs) as resp:
+                resp.raise_for_status()
+                data = await resp.json(content_type=None)
+    except (aiohttp.ClientError, TimeoutError, ValueError) as err:
+        _LOGGER.warning("Could not store brightness on %s: %s", target.host, err)
+        return False
+
+    if target.is_gen1 and isinstance(data, dict) and data.get("ison"):
+        _LOGGER.warning("%s is on after storing brightness", target.host)
+    _LOGGER.debug("Stored %s%% on %s", pct, target.host)
+    return True

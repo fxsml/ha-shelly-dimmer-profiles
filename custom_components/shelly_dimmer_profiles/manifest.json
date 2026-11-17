@@ -1,0 +1,16 @@
+{
+  "domain": "shelly_dimmer_profiles",
+  "name": "Shelly Dimmer Profiles",
+  "after_dependencies": [
+    "light",
+    "shelly"
+  ],
+  "codeowners": [],
+  "config_flow": true,
+  "documentation": "https://github.com/OWNER/ha-shelly-dimmer-profiles",
+  "integration_type": "service",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/OWNER/ha-shelly-dimmer-profiles/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}

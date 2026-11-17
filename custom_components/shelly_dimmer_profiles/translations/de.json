@@ -1,0 +1,176 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Shelly-Dimmer hinzufügen",
+        "description": "Wähle den Shelly-Dimmer, den dieses Profil steuert. Zeitfenster legst du danach an.",
+        "data": {
+          "light_entity_id": "Licht"
+        }
+      }
+    },
+    "error": {
+      "not_shelly": "Dieses Licht gehört zu keinem Shelly-Gerät."
+    },
+    "abort": {
+      "already_configured": "Für dieses Licht gibt es schon ein Profil."
+    }
+  },
+  "config_subentries": {
+    "time_slot": {
+      "entry_type": "Zeitfenster",
+      "initiate_flow": {
+        "user": "Zeitfenster hinzufügen"
+      },
+      "step": {
+        "user": {
+          "title": "Zeitfenster",
+          "description": "Ein Zeitfenster gilt ab seiner Startzeit, bis das nächste Zeitfenster beginnt.",
+          "data": {
+            "name": "Name",
+            "start": "Start",
+            "brightness": "Helligkeit",
+            "on_turn_on": "Beim Einschalten"
+          },
+          "data_description": {
+            "brightness": "Helligkeit dieses Zeitfensters (und Endwert der Rampe).",
+            "on_turn_on": "Direkt mit der Helligkeit einschalten oder eine Rampe starten."
+          },
+          "sections": {
+            "ramp": {
+              "name": "Rampe",
+              "data": {
+                "from_pct": "Starthelligkeit",
+                "duration_min": "Dauer",
+                "curve": "Kurve",
+                "repeat": "Wiederholen",
+                "resume_minutes": "Pausenzeit",
+                "resume_mode": "Nach kurzer Pause"
+              },
+              "data_description": {
+                "curve": "Quadratisch und kubisch beginnen langsamer, das wirkt gleichmäßiger.",
+                "repeat": "Bei jedem Einschalten erneut oder nur einmal pro Zeitfenster.",
+                "resume_minutes": "Wird innerhalb dieser Zeit wieder eingeschaltet, beginnt die Rampe nicht von vorn. 0 = immer von vorn.",
+                "resume_mode": "Rampe ab der letzten Helligkeit fortsetzen oder auf der letzten Helligkeit stehen bleiben."
+              }
+            },
+            "slot_change": {
+              "name": "Beginn dieses Zeitfensters bei eingeschaltetem Licht",
+              "data": {
+                "mode": "Übergang",
+                "soft_duration_s": "Dauer des weichen Übergangs"
+              },
+              "data_description": {
+                "mode": "Keiner: gilt ab dem nächsten Einschalten. Hart: sofort umschalten. Weich: zur neuen Helligkeit überblenden."
+              }
+            }
+          }
+        },
+        "reconfigure": {
+          "title": "Zeitfenster",
+          "description": "Ein Zeitfenster gilt ab seiner Startzeit, bis das nächste Zeitfenster beginnt.",
+          "data": {
+            "name": "Name",
+            "start": "Start",
+            "brightness": "Helligkeit",
+            "on_turn_on": "Beim Einschalten"
+          },
+          "data_description": {
+            "brightness": "Helligkeit dieses Zeitfensters (und Endwert der Rampe).",
+            "on_turn_on": "Direkt mit der Helligkeit einschalten oder eine Rampe starten."
+          },
+          "sections": {
+            "ramp": {
+              "name": "Rampe",
+              "data": {
+                "from_pct": "Starthelligkeit",
+                "duration_min": "Dauer",
+                "curve": "Kurve",
+                "repeat": "Wiederholen",
+                "resume_minutes": "Pausenzeit",
+                "resume_mode": "Nach kurzer Pause"
+              },
+              "data_description": {
+                "curve": "Quadratisch und kubisch beginnen langsamer, das wirkt gleichmäßiger.",
+                "repeat": "Bei jedem Einschalten erneut oder nur einmal pro Zeitfenster.",
+                "resume_minutes": "Wird innerhalb dieser Zeit wieder eingeschaltet, beginnt die Rampe nicht von vorn. 0 = immer von vorn.",
+                "resume_mode": "Rampe ab der letzten Helligkeit fortsetzen oder auf der letzten Helligkeit stehen bleiben."
+              }
+            },
+            "slot_change": {
+              "name": "Beginn dieses Zeitfensters bei eingeschaltetem Licht",
+              "data": {
+                "mode": "Übergang",
+                "soft_duration_s": "Dauer des weichen Übergangs"
+              },
+              "data_description": {
+                "mode": "Keiner: gilt ab dem nächsten Einschalten. Hart: sofort umschalten. Weich: zur neuen Helligkeit überblenden."
+              }
+            }
+          }
+        }
+      },
+      "error": {
+        "duplicate_start": "Ein anderes Zeitfenster beginnt schon zu dieser Uhrzeit."
+      },
+      "abort": {
+        "reconfigure_successful": "Zeitfenster aktualisiert."
+      }
+    }
+  },
+  "selector": {
+    "on_turn_on": {
+      "options": {
+        "set": "Helligkeit setzen",
+        "ramp": "Rampe"
+      }
+    },
+    "curve": {
+      "options": {
+        "linear": "Linear",
+        "quadratic": "Quadratisch",
+        "cubic": "Kubisch"
+      }
+    },
+    "repeat": {
+      "options": {
+        "every": "Bei jedem Einschalten (nach der Pausenzeit)",
+        "once": "Einmal pro Zeitfenster"
+      }
+    },
+    "resume_mode": {
+      "options": {
+        "continue": "Rampe fortsetzen",
+        "hold": "Auf letzter Helligkeit bleiben"
+      }
+    },
+    "mode": {
+      "options": {
+        "none": "Keiner (nächstes Einschalten)",
+        "hard": "Hart",
+        "soft": "Weich"
+      }
+    }
+  },
+  "entity": {
+    "switch": {
+      "active": {
+        "name": "Profil aktiv"
+      }
+    },
+    "sensor": {
+      "active_slot": {
+        "name": "Aktives Zeitfenster",
+        "state_attributes": {
+          "brightness": { "name": "Helligkeit" },
+          "on_turn_on": { "name": "Beim Einschalten" },
+          "ramp_state": { "name": "Rampenstatus" },
+          "ramp_running": { "name": "Rampe läuft" },
+          "manual_override": { "name": "Von Hand geändert" },
+          "stored_brightness": { "name": "Gespeicherte Helligkeit" },
+          "next_change": { "name": "Nächstes Zeitfenster" }
+        }
+      }
+    }
+  }
+}

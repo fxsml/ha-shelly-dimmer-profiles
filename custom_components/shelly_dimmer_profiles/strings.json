@@ -1,0 +1,176 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add a Shelly dimmer",
+        "description": "Choose the Shelly dimmer this profile controls. Add time slots afterwards.",
+        "data": {
+          "light_entity_id": "Light"
+        }
+      }
+    },
+    "error": {
+      "not_shelly": "This light does not belong to a Shelly device."
+    },
+    "abort": {
+      "already_configured": "This light already has a profile."
+    }
+  },
+  "config_subentries": {
+    "time_slot": {
+      "entry_type": "Time slot",
+      "initiate_flow": {
+        "user": "Add time slot"
+      },
+      "step": {
+        "user": {
+          "title": "Time slot",
+          "description": "A time slot is active from its start time until the next time slot starts.",
+          "data": {
+            "name": "Name",
+            "start": "Start",
+            "brightness": "Brightness",
+            "on_turn_on": "When turned on"
+          },
+          "data_description": {
+            "brightness": "Brightness of this time slot (and end value of the ramp).",
+            "on_turn_on": "Turn on directly at the brightness, or start a ramp."
+          },
+          "sections": {
+            "ramp": {
+              "name": "Ramp",
+              "data": {
+                "from_pct": "Start brightness",
+                "duration_min": "Duration",
+                "curve": "Curve",
+                "repeat": "Repeat",
+                "resume_minutes": "Pause time",
+                "resume_mode": "After a short pause"
+              },
+              "data_description": {
+                "curve": "Quadratic and cubic start slower, which looks more even.",
+                "repeat": "Ramp again on every turn-on, or only once per time slot.",
+                "resume_minutes": "Turned on again within this time, the ramp is not restarted. 0 = always restart.",
+                "resume_mode": "Continue the ramp from the last brightness, or stay at the last brightness."
+              }
+            },
+            "slot_change": {
+              "name": "Start of this time slot while the light is on",
+              "data": {
+                "mode": "Transition",
+                "soft_duration_s": "Soft transition duration"
+              },
+              "data_description": {
+                "mode": "None: applies from the next turn-on. Hard: change immediately. Soft: fade to the new brightness."
+              }
+            }
+          }
+        },
+        "reconfigure": {
+          "title": "Time slot",
+          "description": "A time slot is active from its start time until the next time slot starts.",
+          "data": {
+            "name": "Name",
+            "start": "Start",
+            "brightness": "Brightness",
+            "on_turn_on": "When turned on"
+          },
+          "data_description": {
+            "brightness": "Brightness of this time slot (and end value of the ramp).",
+            "on_turn_on": "Turn on directly at the brightness, or start a ramp."
+          },
+          "sections": {
+            "ramp": {
+              "name": "Ramp",
+              "data": {
+                "from_pct": "Start brightness",
+                "duration_min": "Duration",
+                "curve": "Curve",
+                "repeat": "Repeat",
+                "resume_minutes": "Pause time",
+                "resume_mode": "After a short pause"
+              },
+              "data_description": {
+                "curve": "Quadratic and cubic start slower, which looks more even.",
+                "repeat": "Ramp again on every turn-on, or only once per time slot.",
+                "resume_minutes": "Turned on again within this time, the ramp is not restarted. 0 = always restart.",
+                "resume_mode": "Continue the ramp from the last brightness, or stay at the last brightness."
+              }
+            },
+            "slot_change": {
+              "name": "Start of this time slot while the light is on",
+              "data": {
+                "mode": "Transition",
+                "soft_duration_s": "Soft transition duration"
+              },
+              "data_description": {
+                "mode": "None: applies from the next turn-on. Hard: change immediately. Soft: fade to the new brightness."
+              }
+            }
+          }
+        }
+      },
+      "error": {
+        "duplicate_start": "Another time slot already starts at this time."
+      },
+      "abort": {
+        "reconfigure_successful": "Time slot updated."
+      }
+    }
+  },
+  "selector": {
+    "on_turn_on": {
+      "options": {
+        "set": "Set brightness",
+        "ramp": "Ramp"
+      }
+    },
+    "curve": {
+      "options": {
+        "linear": "Linear",
+        "quadratic": "Quadratic",
+        "cubic": "Cubic"
+      }
+    },
+    "repeat": {
+      "options": {
+        "every": "On every turn-on (after the pause time)",
+        "once": "Once per time slot"
+      }
+    },
+    "resume_mode": {
+      "options": {
+        "continue": "Continue ramp",
+        "hold": "Stay at last brightness"
+      }
+    },
+    "mode": {
+      "options": {
+        "none": "None (next turn-on)",
+        "hard": "Hard",
+        "soft": "Soft"
+      }
+    }
+  },
+  "entity": {
+    "switch": {
+      "active": {
+        "name": "Profile active"
+      }
+    },
+    "sensor": {
+      "active_slot": {
+        "name": "Active time slot",
+        "state_attributes": {
+          "brightness": { "name": "Brightness" },
+          "on_turn_on": { "name": "When turned on" },
+          "ramp_state": { "name": "Ramp state" },
+          "ramp_running": { "name": "Ramp running" },
+          "manual_override": { "name": "Changed by hand" },
+          "stored_brightness": { "name": "Stored brightness" },
+          "next_change": { "name": "Next time slot" }
+        }
+      }
+    }
+  }
+}

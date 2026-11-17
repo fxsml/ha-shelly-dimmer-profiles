@@ -17,6 +17,17 @@ Time-based brightness for Shelly dimmers (Gen1 and Gen2+/Gen3) in Home Assistant
   until the light is turned off.
 - English and German UI (follows the Home Assistant user language).
 
+## Supported lights
+
+Only dimmable Shelly **light channels** can be selected (entity unique id `…-light_<n>` /
+`…-light:<n>`, color modes `brightness` or `color_temp`):
+
+- ✅ verified: Dimmer 2 (Gen1), Dimmer Gen3
+- ➖ same API, not verified yet: other Shelly dimmers (Dimmer 1, Pro/Plus dimmers),
+  RGBW2 in white mode
+- ❌ not offered: relays exposed as lights (Plug, 1PM, Plus 1, …), colour lights
+  (RGBW2 in colour mode, …), lights that already have a profile
+
 ## How it works on the devices
 
 | | Gen1 (e.g. Dimmer 2) | Gen2+ (e.g. Dimmer Gen3) |

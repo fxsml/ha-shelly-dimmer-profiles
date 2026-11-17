@@ -297,7 +297,12 @@ async def test_gen3_uses_rpc_and_segments(hass, clock, aioclient_mock):
     shelly = MockConfigEntry(domain="shelly", data={"host": "10.0.0.6", "port": 80, "gen": 3})
     shelly.add_to_hass(hass)
     er.async_get(hass).async_get_or_create(
-        "light", "shelly", "DCB4D9C26168-light:0", config_entry=shelly, suggested_object_id="bad"
+        "light",
+        "shelly",
+        "DCB4D9C26168-light:0",
+        config_entry=shelly,
+        suggested_object_id="bad",
+        capabilities={"supported_color_modes": ["brightness"]},
     )
     hass.states.async_set("light.bad", "off", {"brightness": None})
     light = FakeLight(hass)
@@ -325,7 +330,12 @@ async def test_gen3_store_when_verified(hass, clock, aioclient_mock):
     shelly = MockConfigEntry(domain="shelly", data={"host": "10.0.0.6", "gen": 3})
     shelly.add_to_hass(hass)
     er.async_get(hass).async_get_or_create(
-        "light", "shelly", "DCB4D9C26168-light:0", config_entry=shelly, suggested_object_id="bad"
+        "light",
+        "shelly",
+        "DCB4D9C26168-light:0",
+        config_entry=shelly,
+        suggested_object_id="bad",
+        capabilities={"supported_color_modes": ["brightness"]},
     )
     hass.states.async_set("light.bad", "off", {"brightness": None})
     aioclient_mock.get("http://10.0.0.6:80/rpc/Light.Set", text="null")

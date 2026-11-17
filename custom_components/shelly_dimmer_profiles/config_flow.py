@@ -64,7 +64,7 @@ from .logic import (
     TURN_ON_RAMP,
     TURN_ON_SET,
 )
-from .shelly_api import resolve_target
+from .shelly_api import resolve_target, supported_lights
 
 
 def _select(options: list[str], key: str) -> SelectSelector:
@@ -184,18 +184,23 @@ class ShellyDimmerProfilesConfigFlow(ConfigFlow, domain=DOMAIN):
             await self.async_set_unique_id(entity_id)
             self._abort_if_unique_id_configured()
             if resolve_target(self.hass, entity_id) is None:
-                errors["base"] = "not_shelly"
+                errors["base"] = "not_supported"
             else:
                 state = self.hass.states.get(entity_id)
                 title = state.name if state else entity_id
                 return self.async_create_entry(title=title, data={CONF_LIGHT: entity_id})
+
+        configured = {entry.data[CONF_LIGHT] for entry in self._async_current_entries()}
+        candidates = [e for e in supported_lights(self.hass) if e not in configured]
+        if not candidates:
+            return self.async_abort(reason="no_supported_lights")
 
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_LIGHT): EntitySelector(
-                        EntitySelectorConfig(domain="light", integration="shelly")
+                        EntitySelectorConfig(domain="light", include_entities=candidates)
                     )
                 }
             ),

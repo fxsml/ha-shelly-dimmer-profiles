@@ -10,10 +10,11 @@
       }
     },
     "error": {
-      "not_shelly": "Dieses Licht gehört zu keinem Shelly-Gerät."
+      "not_supported": "Dieses Licht ist kein unterstützter Shelly-Dimmer."
     },
     "abort": {
-      "already_configured": "Für dieses Licht gibt es schon ein Profil."
+      "already_configured": "Für dieses Licht gibt es schon ein Profil.",
+      "no_supported_lights": "Kein unterstützter Shelly-Dimmer ohne Profil gefunden. Unterstützt werden dimmbare Shelly-Lichtkanäle (z. B. Dimmer 2, Dimmer Gen3), keine Relais und keine Farblichter."
     }
   },
   "config_subentries": {
@@ -162,13 +163,27 @@
       "active_slot": {
         "name": "Aktives Zeitfenster",
         "state_attributes": {
-          "brightness": { "name": "Helligkeit" },
-          "on_turn_on": { "name": "Beim Einschalten" },
-          "ramp_state": { "name": "Rampenstatus" },
-          "ramp_running": { "name": "Rampe läuft" },
-          "manual_override": { "name": "Von Hand geändert" },
-          "stored_brightness": { "name": "Gespeicherte Helligkeit" },
-          "next_change": { "name": "Nächstes Zeitfenster" }
+          "brightness": {
+            "name": "Helligkeit"
+          },
+          "on_turn_on": {
+            "name": "Beim Einschalten"
+          },
+          "ramp_state": {
+            "name": "Rampenstatus"
+          },
+          "ramp_running": {
+            "name": "Rampe läuft"
+          },
+          "manual_override": {
+            "name": "Von Hand geändert"
+          },
+          "stored_brightness": {
+            "name": "Gespeicherte Helligkeit"
+          },
+          "next_change": {
+            "name": "Nächstes Zeitfenster"
+          }
         }
       }
     }

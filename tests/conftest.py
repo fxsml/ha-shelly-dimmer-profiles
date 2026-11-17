@@ -66,6 +66,7 @@ def fake_light(hass: HomeAssistant) -> FakeLight:
         "AABBCCDDEEFF-light_0",
         config_entry=shelly,
         suggested_object_id="bad",
+        capabilities={"supported_color_modes": ["brightness"]},
     )
     hass.states.async_set(LIGHT, "off", {"brightness": None})
     return FakeLight(hass)

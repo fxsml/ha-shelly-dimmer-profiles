@@ -77,24 +77,54 @@ class ShellyTarget:
         return RPC_SEGMENT
 
 
+# Color modes whose brightness the dimmer endpoints (/light, Light.Set) control.
+# Colour modes (rgb, rgbw, hs, ...) use other endpoints (e.g. /color on RGBW2) and
+# on/off-only lights are relays (Plug, 1PM, ...), so both are not supported.
+SUPPORTED_COLOR_MODES = {"brightness", "color_temp"}
+
+
+@callback
+def is_supported_light(hass: HomeAssistant, entity: er.RegistryEntry) -> bool:
+    """Whether a light entity is a dimmable Shelly light channel this integration handles."""
+    if entity.domain != "light" or entity.platform != SHELLY_DOMAIN or entity.disabled:
+        return False
+    if not _CHANNEL_RE.search(entity.unique_id or ""):
+        return False  # relay / switch channel exposed as light
+    modes = (entity.capabilities or {}).get("supported_color_modes")
+    if modes is None and (state := hass.states.get(entity.entity_id)) is not None:
+        modes = state.attributes.get("supported_color_modes")
+    return bool(modes) and {str(mode) for mode in modes} <= SUPPORTED_COLOR_MODES
+
+
+@callback
+def supported_lights(hass: HomeAssistant) -> list[str]:
+    """All supported Shelly dimmer lights."""
+    registry = er.async_get(hass)
+    return sorted(
+        entity.entity_id
+        for entity in registry.entities.values()
+        if is_supported_light(hass, entity)
+    )
+
+
 @callback
 def resolve_target(hass: HomeAssistant, entity_id: str) -> ShellyTarget | None:
-    """Find the Shelly device of a light entity, or None if it is not a Shelly."""
+    """Find the Shelly dimmer behind a light entity, or None if it is not supported."""
     entity = er.async_get(hass).async_get(entity_id)
-    if entity is None or entity.platform != SHELLY_DOMAIN or not entity.config_entry_id:
+    if entity is None or not is_supported_light(hass, entity) or not entity.config_entry_id:
         return None
     entry = hass.config_entries.async_get_entry(entity.config_entry_id)
     if entry is None or entry.domain != SHELLY_DOMAIN:
         return None
     host = entry.data.get(CONF_HOST)
-    if not host:
-        return None
     match = _CHANNEL_RE.search(entity.unique_id or "")
+    if not host or match is None:
+        return None
     return ShellyTarget(
         host=host,
         port=int(entry.data.get(CONF_PORT) or 80),
         gen=int(entry.data.get("gen") or 1),
-        channel=int(match.group(1)) if match else 0,
+        channel=int(match.group(1)),
         username=entry.data.get(CONF_USERNAME),
         password=entry.data.get(CONF_PASSWORD),
     )

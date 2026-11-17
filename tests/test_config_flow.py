@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import pytest
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.data_entry_flow import FlowResultType, InvalidData
+from homeassistant.helpers import entity_registry as er
 
 from custom_components.shelly_dimmer_profiles.const import DOMAIN
 
@@ -24,16 +26,68 @@ async def test_user_flow(hass: HomeAssistant, fake_light, aioclient_mock) -> Non
     assert result["data"] == {"light_entity_id": LIGHT}
 
 
-async def test_user_flow_not_shelly(hass: HomeAssistant) -> None:
-    hass.states.async_set("light.other", "off")
+async def test_user_flow_without_supported_lights(hass: HomeAssistant) -> None:
+    hass.states.async_set("light.other", "off", {"supported_color_modes": ["brightness"]})
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"light_entity_id": "light.other"}
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "no_supported_lights"
+
+
+async def test_only_supported_lights_offered(hass: HomeAssistant, fake_light) -> None:
+    registry = er.async_get(hass)
+    shelly = hass.config_entries.async_entries("shelly")[0]
+
+    def add(unique_id: str, object_id: str, modes: list[str]) -> str:
+        return registry.async_get_or_create(
+            "light",
+            "shelly",
+            unique_id,
+            config_entry=shelly,
+            suggested_object_id=object_id,
+            capabilities={"supported_color_modes": modes},
+        ).entity_id
+
+    relay = add("AA-relay_0", "plug", ["onoff"])
+    relay_dimmable = add("AB-switch:0", "mini", ["brightness"])
+    onoff_channel = add("AC-light_1", "onoff", ["onoff"])
+    color = add("AD-light_0", "rgbw", ["rgbw"])
+    gen3 = add("AE-light:0", "gen3", ["brightness"])
+    other = registry.async_get_or_create(
+        "light",
+        "hue",
+        "x",
+        suggested_object_id="hue",
+        capabilities={"supported_color_modes": ["brightness"]},
+    ).entity_id
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
-    assert result["type"] is FlowResultType.FORM
-    assert result["errors"] == {"base": "not_shelly"}
+    selector = result["data_schema"].schema["light_entity_id"]
+    offered = selector.config["include_entities"]
+    assert offered == sorted([LIGHT, gen3])
+    for entity_id in (relay, relay_dimmable, onoff_channel, color, other):
+        assert entity_id not in offered
+
+    # submitted anyway (e.g. via API): the selector already rejects it
+    with pytest.raises(InvalidData):
+        await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"light_entity_id": color}
+        )
+
+
+async def test_configured_light_not_offered_again(
+    hass: HomeAssistant, fake_light, aioclient_mock
+) -> None:
+    aioclient_mock.get("http://10.0.0.5:80/light/0", json={"ison": False})
+    await setup_profile(hass, [slot("Day", "07:00:00", 100)])
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "no_supported_lights"
 
 
 SLOT_INPUT = {

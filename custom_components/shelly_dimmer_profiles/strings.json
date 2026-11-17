@@ -10,10 +10,11 @@
       }
     },
     "error": {
-      "not_shelly": "This light does not belong to a Shelly device."
+      "not_supported": "This light is not a supported Shelly dimmer."
     },
     "abort": {
-      "already_configured": "This light already has a profile."
+      "already_configured": "This light already has a profile.",
+      "no_supported_lights": "No supported Shelly dimmer without a profile found. Supported: dimmable Shelly light channels (e.g. Dimmer 2, Dimmer Gen3); relays and colour lights are not."
     }
   },
   "config_subentries": {
@@ -162,13 +163,27 @@
       "active_slot": {
         "name": "Active time slot",
         "state_attributes": {
-          "brightness": { "name": "Brightness" },
-          "on_turn_on": { "name": "When turned on" },
-          "ramp_state": { "name": "Ramp state" },
-          "ramp_running": { "name": "Ramp running" },
-          "manual_override": { "name": "Changed by hand" },
-          "stored_brightness": { "name": "Stored brightness" },
-          "next_change": { "name": "Next time slot" }
+          "brightness": {
+            "name": "Brightness"
+          },
+          "on_turn_on": {
+            "name": "When turned on"
+          },
+          "ramp_state": {
+            "name": "Ramp state"
+          },
+          "ramp_running": {
+            "name": "Ramp running"
+          },
+          "manual_override": {
+            "name": "Changed by hand"
+          },
+          "stored_brightness": {
+            "name": "Stored brightness"
+          },
+          "next_change": {
+            "name": "Next time slot"
+          }
         }
       }
     }

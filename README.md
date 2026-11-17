@@ -29,10 +29,17 @@ brightness for the next turn-on talks to the device directly.
 
 ## Installation
 
-HACS → ⋮ → *Custom repositories* → add this repository as *Integration*, install,
-restart Home Assistant. Then *Settings → Devices & services → Add integration →
-Shelly Dimmer Profiles*, pick a Shelly light, and add time slots on the integration
-entry (*+ Add time slot*).
+[![Open your Home Assistant instance and open this repository inside HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=fxsml&repository=ha-shelly-dimmer-profiles&category=integration)
+
+Or manually: HACS → ⋮ → *Custom repositories* → add
+`https://github.com/fxsml/ha-shelly-dimmer-profiles` as *Integration*.
+
+Install, restart Home Assistant, then add the integration:
+
+[![Open your Home Assistant instance and start setting up Shelly Dimmer Profiles.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=shelly_dimmer_profiles)
+
+(or *Settings → Devices & services → Add integration → Shelly Dimmer Profiles*). Pick a
+Shelly light and add time slots on the integration entry (*+ Add time slot*).
 
 Requires Home Assistant 2025.7 or newer (config subentries).
 
